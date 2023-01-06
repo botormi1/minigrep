@@ -4,7 +4,9 @@ use std::fs;
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let contents = fs::read_to_string(config.filename)?;
 
-    println!("With text:\n{}", contents);
+    for line in search(&config.query, &contents) {
+        println!("{}", line);
+    }
 
     Ok(())
 }
@@ -24,5 +26,28 @@ impl Config {
         let filename = args[2].clone();
 
         Ok(Config { query, filename })
+    }
+}
+
+pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
+    let mut res = Vec::new();
+    for line in contents.lines() {
+        if line.contains(query) {
+            res.push(line);
+        }
+    }
+    res
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn search_one_result() {
+        let query = "duct";
+        let contents = concat!("Rust:\n", "safe, fast, productive.\n", "Pick three.");
+
+        assert_eq!(vec!["safe, fast, productive."], search(query, contents));
     }
 }
